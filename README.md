@@ -52,29 +52,25 @@
     var writer = new XlsxWriter('mySpreadsheet.xlsx');
 
     // Pass the number of rows and columns:
-    writer.prepare(2, 2, function (err) {
+    writer.prepare(2, 2);
+
+    // Add some rows
+    writer.addRow({
+        "Name": "Bob",
+        "Location": "Sweden"
+    });
+    writer.addRow({
+        "Name": "Alice",
+        "Location": "France"
+    });
+
+    // Finalize the spreadsheet
+    writer.pack(function (err) {
         if (err) {
-            throw err;
+            console.log('Something went wrong!');
+        } else {
+            console.log('All done!');
         }
-
-        // Add some rows
-        writer.addRow({
-            "Name": "Bob",
-            "Location": "Sweden"
-        });
-        writer.addRow({
-            "Name": "Alice",
-            "Location": "France"
-        });
-
-        // Finalize the spreadsheet
-        writer.pack(function (err) {
-            if (err) {
-                console.log('Something went wrong!');
-            } else {
-                console.log('All done!');
-            }
-        });
     });
 
 ## Data Types
