@@ -51,9 +51,6 @@
 
     var writer = new XlsxWriter('mySpreadsheet.xlsx');
 
-    // Pass the number of rows and columns:
-    writer.prepare(2, 2);
-
     // Add some rows
     writer.addRow({
         "Name": "Bob",
@@ -63,6 +60,16 @@
         "Name": "Alice",
         "Location": "France"
     });
+
+    // Optional: Adjust column widths
+    writer.defineColumns([
+        {
+            width: 30 // width is in 'characters'
+        },
+        {
+            width: 10
+        }
+    ])
 
     // Finalize the spreadsheet
     writer.pack(function (err) {
