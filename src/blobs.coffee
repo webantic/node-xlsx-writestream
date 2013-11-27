@@ -1,4 +1,9 @@
 module.exports =
+
+    #
+    # Static strings
+    #
+
     contentTypes: """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -91,6 +96,10 @@ module.exports =
         </styleSheet>
     """.replace(/\n\s*/g, '')
 
+    #
+    # Strings strings
+    #
+
     stringsHeader: (count) -> """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="#{count}" uniqueCount="#{count}">
@@ -106,25 +115,36 @@ module.exports =
         </sst>
     """.replace(/\n\s*/g, '')
 
-    sheetHeader: (dimensions) -> """
+    #
+    # Sheet strings
+    #
+
+    sheetHeader: """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
-            <dimension ref="#{dimensions}"/>
             <sheetViews>
                 <sheetView workbookViewId="0"/>
             </sheetViews>
             <sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"/>
-            <sheetData>
     """.replace(/\n\s*/g, '')
+
+    dimensions: (dimensions) -> """<dimension ref="#{dimensions}"/>"""
+
+    startColumns: """<cols>"""
+    column: (width, index) -> """<col min="#{index}" max="#{index}" width="#{width}" customWidth="1"/>"""
+    endColumns: """</cols>"""
 
     startRow: (row) -> """<row r="#{row + 1}">"""
     endRow: """</row>"""
+
     cell: (index, cell) -> """<c r="#{cell}" t="s"><v>#{index}</v></c>"""
     dateCell: (value, cell) -> """<c r="#{cell}" s="1" t="n"><v>#{value}</v></c>"""
     numberCell: (value, cell) -> """<c r="#{cell}" s="0" t="n"><v>#{value}</v></c>"""
 
+    sheetDataHeader: """<sheetData>"""
+    sheetDataFooter: """</sheetData>"""
+
     sheetFooter: """
-            </sheetData>
         </worksheet>
     """.replace(/\n\s*/g, '')
 

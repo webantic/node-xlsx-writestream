@@ -11,13 +11,11 @@ class XlsxWriter
         columns += 1 for key of data[0]
 
         writer = new XlsxWriter(out)
-        writer.prepare(rows, columns)
-
-        for row in data
-            writer.addRow(row)
+        writer.addRows(data)
         writer.pack(cb)
 
     constructor: (@out) ->
+        @sheetData = ''
         @strings = []
         @stringMap = {}
         @stringIndex = 0
@@ -29,10 +27,21 @@ class XlsxWriter
         @cellMap = []
         @cellLabelMap = {}
 
-    addRow: (obj) ->
-        throw Error('Should call prepare() first!') if !@prepared
+        @options = {
+            defaultWidth: 15
+        }
 
+        @columns = []
+
+        @_write(blobs.sheetHeader)
+
+    # Write a row to the sheet.
+    addRow: (obj) ->
+
+        # Values in header are defined by the keys of the object we've passed in.
+        # They need to be written the first time they're passed in.
         if !@haveHeader
+            @_write(blobs.sheetDataHeader)
             @_startRow()
             col = 1
             for key of obj
@@ -48,16 +57,13 @@ class XlsxWriter
             @_addCell(obj[key] || "", col + 1)
         @_endRow()
 
-    prepare: (rows, columns) ->
-        # Add one extra row for the header
-        dimensions = @dimensions(rows + 1, columns)
+    addRows: (rows) ->
+        for row in rows
+            @addRow(row)
 
-        # Create header and mark this sheet as ready
-        @sheetData = blobs.sheetHeader(dimensions)
-        @prepared = true
+    defineColumns: (@columns) ->
 
     pack: (cb) ->
-        throw Error('Should call prepare() first!') if !@prepared
 
         # Create Zip (JSZip port, no native deps)
         zipFile = new Zip()
@@ -76,8 +82,19 @@ class XlsxWriter
         stringsData = blobs.stringsHeader(@strings.length) + stringTable + blobs.stringsFooter
         zipFile.file('xl/sharedStrings.xml', stringsData)
 
-        # Append footer to sheet
-        @sheetData += blobs.sheetFooter
+        # Finish up the sheet
+
+        # If there was data, end sheetData
+        if @haveHeader
+            @_write(blobs.sheetDataFooter)
+
+        # Write column & dimension metadata
+        @_writeColumnDefinition()
+        colCount = Object.keys(@cellLabelMap).length
+        @_write(blobs.dimensions(@dimensions(@currentRow, colCount)))
+
+        # End sheet
+        @_write(blobs.sheetFooter)
 
         # Add sheet
         zipFile.file('xl/worksheets/sheet1.xml', @sheetData)
@@ -165,7 +182,20 @@ class XlsxWriter
             @rowBuffer += blobs.cell(index, cell)
 
     _endRow: () ->
-        @sheetData += @rowBuffer + blobs.endRow
+        @_write(@rowBuffer + blobs.endRow)
+
+    _write: (data) ->
+        @sheetData += (data)
+
+    _writeColumnDefinition: () ->
+        @_write(blobs.startColumns)
+
+        idx = 1
+        for index, column of @columns
+            @_write(blobs.column(column.width || @options.defaultWidth, idx))
+            idx += 1
+
+        @_write(blobs.endColumns)
 
     escapeXml: (str = '') ->
         return str.replace(/&/g, '&amp;')
