@@ -4,8 +4,6 @@ Zip = require('node-zip')
 
 blobs = require('./blobs')
 
-numberRegex = /^[1-9\.][\d\.]+$/
-
 class XlsxWriter
     @write = (out, data, cb) ->
         rows = data.length
@@ -126,12 +124,42 @@ class XlsxWriter
             @stringIndex += 1
         return @stringMap[value]
 
+    # http://stackoverflow.com/a/15550284/2644351
+    _dateToOADate: (date) ->
+        epoch = new Date(1899,11,30)
+        msPerDay = 8.64e7
+
+        v = -1 * (epoch - date) / msPerDay;
+
+        # Deal with dates prior to 1899-12-30 00:00:00
+        dec = v - Math.floor(v)
+
+        if v < 0 and dec
+            v = Math.floor(v) - dec
+
+        return v
+
+    _OADateToDate: (oaDate) ->
+        epoch = new Date(1899,11,30)
+        msPerDay = 8.64e7
+
+        # Deal with -ve values
+        dec = oaDate - Math.floor(oaDate)
+
+        if oaDate < 0 and dec
+            oaDate = Math.floor(oaDate) - dec
+
+        return new Date(oaDate * msPerDay + +epoch)
+
     _addCell: (value = '', col) ->
         row = @currentRow
         cell = @cell(row, col)
 
-        if numberRegex.test(value)
+        if typeof value == 'number'
             @rowBuffer += blobs.numberCell(value, cell)
+        else if value instanceof Date
+            date = @_dateToOADate(value)
+            @rowBuffer += blobs.dateCell(date, cell)
         else
             index = @_lookupString(value)
             @rowBuffer += blobs.cell(index, cell)
