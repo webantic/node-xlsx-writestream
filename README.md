@@ -77,6 +77,17 @@
         });
     });
 
+## Data Types
+  
+  Numbers, Strings, and Dates are automatically converted when inputted. Simply
+  use their native types:
+
+    writer.addRow({
+        "A String Column" : "A String Value",
+        "A Number Column" : 12345,
+        "A Date Column" : new Date(1999,11,31)
+    })
+
 ## Contributing
 
   In lieu of a formal styleguide, take care to maintain the existing coding
