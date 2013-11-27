@@ -1,4 +1,5 @@
 xlsx = require('..')
+XLSXInstance = new xlsx()
 
 _ = require('underscore')
 assert = require('assert')
@@ -38,4 +39,12 @@ module.exports = (name, data) ->
             for row, rowNr in result
                 continue if rowNr == 0 # Header
                 for key, index in _.keys(data[0])
-                    assert.equal(row[index], data[rowNr - 1][key] || "")
+                    fileVal = row[index]
+                    srcVal = data[rowNr - 1][key] || ""
+
+                    # Date handling - comes back from sheet as an OADate, but is Date in source
+                    if srcVal instanceof Date
+                        fileVal = XLSXInstance._OADateToDate(fileVal).valueOf()
+                        srcVal = srcVal.valueOf() # without valueOf, date objects cannot use ==
+
+                    assert.equal(srcVal, fileVal)

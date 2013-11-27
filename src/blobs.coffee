@@ -76,6 +76,7 @@ module.exports =
             </cellStyleXfs>
             <cellXfs count="1">
                 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+                <xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0"/>
             </cellXfs>
             <cellStyles count="1">
                 <cellStyle name="Normal" xfId="0" builtinId="0"/>
@@ -119,7 +120,8 @@ module.exports =
     startRow: (row) -> """<row r="#{row + 1}">"""
     endRow: """</row>"""
     cell: (index, cell) -> """<c r="#{cell}" t="s"><v>#{index}</v></c>"""
-    numberCell: (value, cell) -> """<c r="#{cell}" t="n"><v>#{value}</v></c>"""
+    dateCell: (value, cell) -> """<c r="#{cell}" s="1" t="n"><v>#{value}</v></c>"""
+    numberCell: (value, cell) -> """<c r="#{cell}" s="0" t="n"><v>#{value}</v></c>"""
 
     sheetFooter: """
             </sheetData>
