@@ -3,7 +3,7 @@ XlsxWriter = require('..')
 assert = require('assert')
 
 describe 'Dimensions', ->
-    writer = new XlsxWriter('tmp.xslx')
+    writer = new XlsxWriter('tmp.xlsx')
 
     it 'Calculates 0x0 dimensions', ->
         assert.equal(writer.dimensions(0, 0), 'A1:A1')
