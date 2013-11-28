@@ -1,9 +1,13 @@
 var _ = require('underscore');
+
+// Anything that needs to be reachable from inside tests needs to be assigned to `global`
+// Has to do with how crazy benchmarkjs is
+global.fs = require('fs');
 global.XlsxWriter = require('..');
 
-global.filename = "tmp/benchmark-test.xlsx";
+global.fileName = "tmp/benchmark-test.xlsx";
 function generateDoc(data, cb) {
-  XlsxWriter.write(filename, data, cb);
+  XlsxWriter.write(fileName, data, cb);
 }
 
 // Generate a size*size grid of data.
@@ -25,81 +29,173 @@ var largeDataSize = 200;
 global.smallData = generateData(smallDataSize);
 global.largeData = generateData(largeDataSize);
 
+global.parallelWork = function(writer, fileName, packOptions, parallelism, cb) {
+  var finished = _.after(parallelism, cb);
+
+  for (var i = 0; i < parallelism; i++) {
+    work(writer, fileName + i, {}, finished);
+  }
+};
+
+// Individual file pack & write
+global.work = function(writer, fileName, packOptions, cb) {
+  var readStream = writer.pack(packOptions);
+  var fileStream = fs.createWriteStream(fileName);
+  fileStream.once('finish', cb);
+  readStream.pipe(fileStream);
+};
+
 
 // We don't run any tests with defer:true, just using it
 // causes synchronous tests to lose perf by two orders of magnitude.
 // Since JSZip is synchronous, this appears to be fair.
+
 module.exports = {
-  name: 'Node-Xlsx-Writer benchmarks',
+  name: 'Node-XLSX-Writer benchmarks',
   tests: {
     'Small dataset - Packing': {
+      defer: true,
       setup: function() {
-        this.writer = new XlsxWriter();
-        this.writer.addRows(smallData);
-        this.writer.finalize();
+        var writer = new XlsxWriter();
+        writer.addRows(smallData);
+        writer.finalize();
       },
-      fn: function(){
-        this.writer.pack();
+      fn: function(deferred){
+        work(writer, fileName, {}, function(){
+          deferred.resolve();
+        });
       }
     },
     'Small dataset - Packing (no compression)': {
+      defer: true,
       setup: function() {
-        this.writer = new XlsxWriter();
-        this.writer.addRows(smallData);
-        this.writer.finalize();
+        var writer = new XlsxWriter();
+        writer.addRows(smallData);
+        writer.finalize();
       },
-      fn: function(){
-        this.writer.pack({
-          compression: 'STORE'
+      fn: function(deferred){
+        work(writer, fileName, {zlib: {level: 0}}, function(){
+          deferred.resolve();
+        });
+      }
+    },
+    'Small dataset - Packing (parallelism: 10)': {
+      defer: true,
+      setup: function() {
+        var writer = new XlsxWriter();
+        writer.addRows(smallData);
+        writer.finalize();
+      },
+      fn: function(deferred){
+        var parallelism = 10;
+        parallelWork(writer, fileName, {}, 10, function(){
+          deferred.resolve();
         });
       }
     },
     'Small dataset - Adding rows only': {
       setup: function() {
-        this.writer = new XlsxWriter();
+        var writer = new XlsxWriter();
       },
       fn: function(){
-        this.writer.addRows(smallData);
+        writer.addRows(smallData);
       }
     },
     'Small dataset - Generate entire file': {
-      fn: function(){
-        XlsxWriter.write(filename, smallData, function(){});
+      defer: true,
+      fn: function(deferred){
+        XlsxWriter.write(fileName, smallData, function(){
+          deferred.resolve();
+        });
       }
     },
-    'Large dataset - Packing': {
+    'Small dataset - Generate entire file (parallelism: 10)': {
+      defer: true,
       setup: function() {
-        this.writer = new XlsxWriter();
-        this.writer.addRows(largeData);
-        this.writer.finalize();
+        var writer = new XlsxWriter();
+        writer.addRows(smallData);
+        writer.finalize();
       },
-      fn: function(){
-        this.writer.pack();
+      fn: function(deferred){
+        var parallelism = 10;
+        var finished = _.after(parallelism, function() { deferred.resolve(); });
+        _.times(parallelism, function(n){
+          XlsxWriter.write(fileName + n, smallData, finished);
+        });
+      }
+    },
+
+    // Large dataset
+
+    'Large dataset - Packing': {
+      defer: true,
+      setup: function() {
+        var writer = new XlsxWriter();
+        writer.addRows(largeData);
+        writer.finalize();
+      },
+      fn: function(deferred){
+        work(writer, fileName, {}, function(){
+          deferred.resolve();
+        });
       }
     },
     'Large dataset - Packing (no compression)': {
+      defer: true,
       setup: function() {
-        this.writer = new XlsxWriter();
-        this.writer.addRows(largeData);
-        this.writer.finalize();
+        var writer = new XlsxWriter();
+        writer.addRows(largeData);
+        writer.finalize();
       },
-      fn: function(){
-        this.writer.pack({
-          compression: 'STORE'
+      fn: function(deferred){
+        work(writer, fileName, {zlib: {level: 0}}, function(){
+          deferred.resolve();
+        });
+      }
+    },
+    'Large dataset - Packing (parallelism: 10)': {
+      defer: true,
+      setup: function() {
+        var writer = new XlsxWriter();
+        writer.addRows(largeData);
+        writer.finalize();
+      },
+      fn: function(deferred){
+        var parallelism = 10;
+        parallelWork(writer, fileName, {}, 10, function(){
+          deferred.resolve();
         });
       }
     },
     'Large dataset - Adding rows only': {
       setup: function() {
-        this.writer = new XlsxWriter();
+        var writer = new XlsxWriter();
       },
       fn: function(){
-        this.writer.addRows(largeData);
+        writer.addRows(largeData);
       }
     },
     'Large dataset - Generate entire file': {
-      fn: function(){
-        XlsxWriter.write(filename, largeData, function(){});
+      defer: true,
+      fn: function(deferred){
+        XlsxWriter.write(fileName, largeData, function(){
+          deferred.resolve();
+        });
+      }
+    },
+    'Large dataset - Generate entire file (parallelism: 10)': {
+      defer: true,
+      setup: function() {
+        var writer = new XlsxWriter();
+        writer.addRows(largeData);
+        writer.finalize();
+      },
+      fn: function(deferred){
+        var parallelism = 10;
+        var finished = _.after(parallelism, function() { deferred.resolve(); });
+        _.times(parallelism, function(n){
+          XlsxWriter.write(fileName + n, largeData, finished);
+        });
       }
     },
   }

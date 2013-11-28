@@ -5,8 +5,8 @@ Node-XLSX-Writer is written in literate coffeescript. The following is the actua
 module.
 
     fs = require('fs')
-    Zip = require('node-zip')
     blobs = require('./blobs')
+    Archiver = require('archiver')
 
     module.exports = class XlsxWriter
 
@@ -137,10 +137,11 @@ The callback is fed directly to `fs.writeFile`.
         if !fileName
           return new Error("Filename required.")
 
-        results = @zipContents or @pack()
+        zip = @pack(fileName)
+        fileStream = fs.createWriteStream(fileName);
+        fileStream.once 'finish', cb
+        zip.pipe(fileStream)
 
-        # Write to output location
-        fs.writeFile(fileName, results, 'binary', cb)
 
 ##### pack([jsZipOptions]: Object) : Buffer
 
@@ -158,32 +159,28 @@ be a bottleneck and plug up the event loop. In that case, consider
 [threads](https://github.com/audreyt/node-webworker-threads).
 
       # @return {Buffer} Raw ZIP data.
-      pack: (jsZipOptions = {}) ->
-        # Create Zip (JSZip port, no native deps)
-        zipFile = new Zip()
+      pack: (options) ->
 
-        # Add static supporting files
-        zipFile.file('[Content_Types].xml', blobs.contentTypes)
-        zipFile.file('_rels/.rels', blobs.rels)
-        zipFile.file('xl/workbook.xml', blobs.workbook)
-        zipFile.file('xl/styles.xml', blobs.styles)
-        zipFile.file('xl/_rels/workbook.xml.rels', blobs.workbookRels)
-
-        # Add sheet
+        # Finalize sheet if it hasn't been already.
         if (!@finalized)
           @finalize()
-        zipFile.file('xl/worksheets/sheet1.xml', @sheetData)
-        zipFile.file('xl/sharedStrings.xml', @stringsData)
 
-        # Pack it up
-        results = zipFile.generate(_extend({
-          compression: 'DEFLATE',
-          type: 'nodebuffer'
-        }, jsZipOptions))
+        opts = _extend({forceUTC: true}, options);
 
-        @zipContents = results
+        # Create Zip (JSZip port, no native deps)
+        zip = Archiver('zip', opts)
 
-        return results
+        zip
+          .append(blobs.contentTypes, {name: '[Content_Types].xml'})
+          .append(blobs.rels, {name: '_rels/.rels'})
+          .append(blobs.workbook, {name: 'xl/workbook.xml'})
+          .append(blobs.styles, {name: 'xl/styles.xml'})
+          .append(blobs.workbookRels, {name: 'xl/_rels/workbook.xml.rels'})
+          .append(@sheetData, {name: 'xl/worksheets/sheet1.xml'})
+          .append(@stringsData, {name: 'xl/sharedStrings.xml'})
+          .finalize();
+
+        return zip
 
 ##### finalize()
 
