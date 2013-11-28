@@ -1,4 +1,5 @@
 module.exports = (grunt) ->
+    @loadNpmTasks('grunt-benchmark')
     @loadNpmTasks('grunt-contrib-clean')
     @loadNpmTasks('grunt-contrib-coffee')
     @loadNpmTasks('grunt-contrib-watch')
@@ -7,6 +8,12 @@ module.exports = (grunt) ->
     @loadNpmTasks('grunt-release')
 
     @initConfig
+        benchmark:
+            options:
+                displayResults: true
+            all:
+                src: ['benchmarks/*.js'],
+
         coffee:
             all:
                 options:
@@ -38,7 +45,8 @@ module.exports = (grunt) ->
                 options:
                     reporter: 'spec'
 
-    @registerTask 'default', ['test']
+    @registerTask 'default', ['test', 'benchmark']
     @registerTask 'build', ['clean', 'coffee']
     @registerTask 'package', ['build', 'release']
     @registerTask 'test', ['build', 'mkdir', 'mochacli']
+    @registerTask 'bench', ['build', 'mkdir', 'benchmark']
