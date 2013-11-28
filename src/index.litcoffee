@@ -40,22 +40,37 @@ When constructing a writer, pass it an optional file path and customization opti
       # @param {String} [out] Destination file path.
       # @param {Object} [options] Preparation options.
       constructor: (out = '', options = {}) ->
-          # Allow passing options only.
-          if (typeof out != 'string')
-              options = out
-              out = ''
+        # Allow passing options only.
+        if (typeof out != 'string')
+            options = out
+            out = ''
 
-          # Assign output path.
-          @out = out
+        # Assign output path.
+        @out = out
 
-          # Set options.
-          defaults = {
-              defaultWidth: 15
-          }
-          @options = _extend(defaults, options)
+        # Set options.
+        defaults = {
+            defaultWidth: 15
+            zip: {
+              forceUTC: true # this is required, zips will be unreadable without it
+            }
+        }
+        @options = _extend(defaults, options)
 
-          @_resetSheet()
+        # Start sheet.
+        @_resetSheet()
 
+        # Create Zip.
+        zipOptions = @options.zip || {}
+        zipOptions.forceUTC = true # force this on in all cases for now, otherwise we're useless
+        @zip = Archiver('zip', zipOptions)
+
+        # Archiver attaches an exit listener on the process, we don't want this,
+        # it will fire if this object is never finalized.
+        @zip.catchEarlyExitAttached = true 
+
+        # Hook this passthrough into the zip stream.
+        @zip.append(@sheetStream, {name: 'xl/worksheets/sheet1.xml'})
 
 #### Adding rows
 
@@ -117,11 +132,11 @@ Column definitions can be easily added.
 Once you are done adding rows & defining columns, you have a few options
 for generating the file. The `writeToFile` helper is a one-stop-shop for writing
 directly to a file using `fs.writeFile`; otherwise, you can pack() manually,
-which will return a `Buffer` with the packed file.
+which will return a readable stream.
 
 ##### writeToFile([fileName]: String, cb: Function)
 
-Writes data to a file - split out from packing so we can use the raw buffer.
+Writes data to a file. Convenience method.
 
 If no filename is specified, will attempt to use the one specified in the
 constructor.
@@ -137,50 +152,37 @@ The callback is fed directly to `fs.writeFile`.
         if !fileName
           return new Error("Filename required.")
 
-        zip = @pack(fileName)
+        # Create zip, pipe it into a file writeStream.
+        zip = @createReadStream(fileName)
         fileStream = fs.createWriteStream(fileName);
         fileStream.once 'finish', cb
         zip.pipe(fileStream)
 
 
-##### pack([jsZipOptions]: Object) : Buffer
+##### createReadStream([jsZipOptions]: Object) : Stream
 
-Packs the file and returns a raw buffer.
+Packs the file and returns a readable stream. You can pipe this directly to a file
+or response object. Be sure to use 'binary' mode.
 
 Will finalize the sheet & generate shared strings if they haven't been already. 
 
-You may pass [JSZip options](http://stuk.github.io/jszip/#doc_generate_options) directly
-to this method. Pass `{compression: 'STORE'}` for about 5x faster packing at the expense of file
-size. In my tests, a 200x200 random data spreadsheet was 549KB with default settings and 
-2.1MB with `{compression: 'STORE'}`.
-
-If you are generating a large number of files or expect heavy request traffic, this could 
-be a bottleneck and plug up the event loop. In that case, consider 
-[threads](https://github.com/audreyt/node-webworker-threads).
-
-      # @return {Buffer} Raw ZIP data.
-      pack: (options) ->
+      # @return {Stream} Readable stream with ZIP data.
+      createReadStream: (options) ->
 
         # Finalize sheet if it hasn't been already.
         if (!@finalized)
           @finalize()
 
-        opts = _extend({forceUTC: true}, options);
-
-        # Create Zip (JSZip port, no native deps)
-        zip = Archiver('zip', opts)
-
-        zip
+        @zip
           .append(blobs.contentTypes, {name: '[Content_Types].xml'})
           .append(blobs.rels, {name: '_rels/.rels'})
           .append(blobs.workbook, {name: 'xl/workbook.xml'})
           .append(blobs.styles, {name: 'xl/styles.xml'})
           .append(blobs.workbookRels, {name: 'xl/_rels/workbook.xml.rels'})
-          .append(@sheetData, {name: 'xl/worksheets/sheet1.xml'})
           .append(@stringsData, {name: 'xl/sharedStrings.xml'})
-          .finalize();
+          .finalize()
 
-        return zip
+        return @zip
 
 ##### finalize()
 
@@ -200,13 +202,23 @@ Finishes up the sheet & generate shared strings.
         @_write(blobs.dimensions(@_getDimensionsData(@currentRow, colCount)))
 
         # End sheet
-        @_write(blobs.sheetFooter)
+        @sheetStream.end(blobs.sheetFooter);
 
         # Generate shared strings
         @_generateStrings()
 
         # Mark this as finished
         @finalized = true
+
+##### dispose()
+
+Cancel use of this writer and close all streams. This is not needed if you've written to a file.
+
+      dispose: () ->
+        @sheetStream.end()
+        @sheetStream.unpipe()
+        @zip.finalize()
+        @zip.unpipe()
 
 
 #### Internal methods
@@ -369,6 +381,10 @@ Resets sheet data. Called on initialization.
         @haveHeader = false
         @finalized = false
 
+        # Create sheet stream.
+        PassThrough = require('stream').PassThrough
+        @sheetStream = new PassThrough()
+
         # Start off the sheet.
         @_write(blobs.sheetHeader)
 
@@ -376,7 +392,7 @@ Wrapper around writing sheet data.
 
       # @param {String} data Data to write to the sheet.
       _write: (data) ->
-        @sheetData += (data)
+        @sheetStream.write(data)
 
 Utility method for escaping XML - used within blobs and can be used manually.
 
