@@ -7,7 +7,6 @@ parser = require('excel')
 
 describe 'Column Width Test', ->
     filename = "tmp/column-width-test.xlsx"
-    writer = new XlsxWriter(filename)
 
     result = []
 
@@ -22,19 +21,19 @@ describe 'Column Width Test', ->
         }
     ]
 
-    writer.defineColumns([
-        {
-            width: 30
-        },
-        {
-            width: 10
-        }
-    ])
+    columns = [
+        {width: 30},
+        {width: 10}
+    ]
 
-    writer.addRows(data)
 
     before (done) ->
+        writer = new XlsxWriter(filename)
+
+        writer.addRows(data)
+
         writer.writeToFile (err) ->
+            console.log('done')
             return done(err) if err
 
             parser filename, (err, workbook) ->

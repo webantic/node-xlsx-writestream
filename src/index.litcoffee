@@ -23,7 +23,7 @@ The callback comes directly from `fs.writeFile` and has the arity `(err)`
       # @param {Array} data Data to write.
       # @param {Function} cb Callback to call when done. Fed (err).
       @write = (out, data, cb) ->
-          writer = new XlsxWriter(out)
+          writer = new XlsxWriter({out: out})
           writer.addRows(data)
           writer.writeToFile(cb)
 
@@ -34,19 +34,15 @@ of spreadsheets.
 
 When constructing a writer, pass it an optional file path and customization options.
 
-##### new XlsxWriter([out]: String, [options]: Object) : XlsxWriter
+##### new XlsxWriter([options]: Object) : XlsxWriter
 
       # Build a writer object.
-      # @param {String} [out] Destination file path.
       # @param {Object} [options] Preparation options.
-      constructor: (out = '', options = {}) ->
-        # Allow passing options only.
-        if (typeof out != 'string')
-            options = out
-            out = ''
+      constructor: (options = {}) ->
 
-        # Assign output path.
-        @out = out
+        # Support just passing a string path into the constructor.
+        if (typeof options == 'string')
+          options = {out: options}
 
         # Set options.
         defaults = {
@@ -139,7 +135,7 @@ which will return a readable stream.
 Writes data to a file. Convenience method.
 
 If no filename is specified, will attempt to use the one specified in the
-constructor.
+constructor as `options.out`.
 
 The callback is fed directly to `fs.writeFile`.
 
@@ -148,9 +144,9 @@ The callback is fed directly to `fs.writeFile`.
       writeToFile: (fileName, cb) ->
         if fileName instanceof Function
           cb = fileName
-          fileName = @out
+          fileName = @options.out
         if !fileName
-          return new Error("Filename required.")
+          throw new Error("Filename required. Supply one in writeToFile() or in options.out.")
 
         # Create zip, pipe it into a file writeStream.
         zip = @createReadStream(fileName)
@@ -215,10 +211,16 @@ Finishes up the sheet & generate shared strings.
 Cancel use of this writer and close all streams. This is not needed if you've written to a file.
 
       dispose: () ->
+        return if @disposed
+
         @sheetStream.end()
         @sheetStream.unpipe()
-        @zip.finalize()
         @zip.unpipe()
+        while(@zip.read()) # drain stream
+          1; # noop
+        delete @zip
+        delete @sheetStream
+        @disposed = true
 
 
 #### Internal methods
