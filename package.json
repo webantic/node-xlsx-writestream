@@ -38,7 +38,8 @@
     "grunt-mkdir": "~0.1.0",
     "excel": "0.0.3",
     "underscore": "~1.4.4",
-    "grunt-release": "~0.3.1"
+    "grunt-release": "~0.3.1",
+    "grunt-benchmark": "~0.2.0"
   },
   "keywords": [
     "xlsx",
