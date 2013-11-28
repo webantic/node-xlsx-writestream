@@ -4,6 +4,11 @@
   
   [![Build Status](https://travis-ci.org/rubenv/node-xlsx-writer.png?branch=master)](https://travis-ci.org/rubenv/node-xlsx-writer)
 
+  Node-XLSX-Writer is written in [Literate CoffeeScript](http://coffeescript.org/#literate), so the source
+  can be viewed as Markdown. 
+
+  [View the source & API.](src/index.litcoffee)
+
 ## Usage
   
   You can install the latest version via npm:
@@ -63,21 +68,15 @@
 
     // Optional: Adjust column widths
     writer.defineColumns([
-        {
-            width: 30 // width is in 'characters'
-        },
-        {
-            width: 10
-        }
+        { width: 30 }, // width is in 'characters'
+        { width: 10 }
     ])
 
-    // Finalize the spreadsheet
-    writer.pack(function (err) {
-        if (err) {
-            console.log('Something went wrong!');
-        } else {
-            console.log('All done!');
-        }
+    // Finalize the spreadsheet. Pass compression options here.
+    var buf = writer.pack();
+
+    fs.writeFile('mySpreadsheet.xlsx', buf, 'binary', function(err){
+      // ...  
     });
 
 ## Data Types
