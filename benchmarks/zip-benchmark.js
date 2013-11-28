@@ -29,28 +29,24 @@ var largeDataSize = 200;
 global.smallData = generateData(smallDataSize);
 global.largeData = generateData(largeDataSize);
 
-global.parallelWork = function(writer, fileName, parallelism, cb) {
-  var finished = _.after(parallelism, cb);
-
-  for (var i = 0; i < parallelism; i++) {
-    work(writer, fileName + i, finished);
-  }
-};
-
 // Individual file pack & write
-global.work = function(writer, fileName, cb) {
+global.work = function(writerObj, fileName, cb) {
   var fileStream = fs.createWriteStream(fileName);
   fileStream.once('finish', cb);
-  writer.createReadStream().pipe(fileStream);
+  writerObj.createReadStream().pipe(fileStream);
 };
 
 module.exports = {
   name: 'Node-XLSX-Writer benchmarks',
+  onError: function(err) { // amazingly useless
+    console.error('error caught');
+    console.error(err.target.error.stack);
+  },
   tests: {
     'Small dataset - Packing': {
       defer: true,
       setup: function() {
-        var writer = new XlsxWriter();
+        global.writer = new XlsxWriter();
         writer.addRows(smallData);
         writer.finalize();
       },
@@ -60,36 +56,22 @@ module.exports = {
         });
       }
     },
-    'Small dataset - Packing (no compression)': {
-      defer: true,
-      setup: function() {
-        var writer = new XlsxWriter({zip: {zlib: {level: 0}}});
-        writer.addRows(smallData);
-        writer.finalize();
-      },
-      fn: function(deferred){
-        work(writer, fileName, function(){
-          deferred.resolve();
-        });
-      }
-    },
-    'Small dataset - Packing (parallelism: 10)': {
-      defer: true,
-      setup: function() {
-        var writer = new XlsxWriter();
-        writer.addRows(smallData);
-        writer.finalize();
-      },
-      fn: function(deferred){
-        var parallelism = 10;
-        parallelWork(writer, fileName, 10, function(){
-          deferred.resolve();
-        });
-      }
-    },
+    // 'Small dataset - Packing (no compression)': {
+    //   defer: true,
+    //   setup: function() {
+    //     global.writer = new XlsxWriter({zip: {zlib: {level: 0}}});
+    //     writer.addRows(smallData);
+    //     writer.finalize();
+    //   },
+    //   fn: function(deferred){
+    //     work(writer, fileName, function(){
+    //       deferred.resolve();
+    //     });
+    //   }
+    // },
     'Small dataset - Adding rows only': {
       setup: function() {
-        var writer = new XlsxWriter();
+        global.writer = new XlsxWriter();
       },
       fn: function(){
         writer.addRows(smallData);
@@ -105,11 +87,6 @@ module.exports = {
     },
     'Small dataset - Generate entire file (parallelism: 10)': {
       defer: true,
-      setup: function() {
-        var writer = new XlsxWriter();
-        writer.addRows(smallData);
-        writer.finalize();
-      },
       fn: function(deferred){
         var parallelism = 10;
         var finished = _.after(parallelism, function() { deferred.resolve(); });
@@ -124,12 +101,12 @@ module.exports = {
     'Large dataset - Packing': {
       defer: true,
       setup: function() {
-        var writer = new XlsxWriter();
+        global.writer = new XlsxWriter();
         writer.addRows(largeData);
         writer.finalize();
       },
       fn: function(deferred){
-        work(writer, fileName, {}, function(){
+        work(writer, fileName, function(){
           deferred.resolve();
         });
       }
@@ -137,33 +114,19 @@ module.exports = {
     'Large dataset - Packing (no compression)': {
       defer: true,
       setup: function() {
-        var writer = new XlsxWriter();
+        global.writer = new XlsxWriter({zip: {zlib: {level: 0}}});
         writer.addRows(largeData);
         writer.finalize();
       },
       fn: function(deferred){
-        work(writer, fileName, {zlib: {level: 0}}, function(){
-          deferred.resolve();
-        });
-      }
-    },
-    'Large dataset - Packing (parallelism: 10)': {
-      defer: true,
-      setup: function() {
-        var writer = new XlsxWriter();
-        writer.addRows(largeData);
-        writer.finalize();
-      },
-      fn: function(deferred){
-        var parallelism = 10;
-        parallelWork(writer, fileName, {}, 10, function(){
+        work(writer, fileName, function(){
           deferred.resolve();
         });
       }
     },
     'Large dataset - Adding rows only': {
       setup: function() {
-        var writer = new XlsxWriter();
+        global.writer = new XlsxWriter();
       },
       fn: function(){
         writer.addRows(largeData);
@@ -179,11 +142,6 @@ module.exports = {
     },
     'Large dataset - Generate entire file (parallelism: 10)': {
       defer: true,
-      setup: function() {
-        var writer = new XlsxWriter();
-        writer.addRows(largeData);
-        writer.finalize();
-      },
       fn: function(deferred){
         var parallelism = 10;
         var finished = _.after(parallelism, function() { deferred.resolve(); });
@@ -191,6 +149,15 @@ module.exports = {
           XlsxWriter.write(fileName + n, largeData, finished);
         });
       }
-    },
+    }
   }
 };
+
+// Free memory after every test run
+_.each(module.exports.tests, function(test){
+  test.teardown = function() {
+    if (writer) {
+      writer.dispose();
+    }
+  };
+});
