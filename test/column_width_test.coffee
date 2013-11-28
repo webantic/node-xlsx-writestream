@@ -34,7 +34,7 @@ describe 'Column Width Test', ->
     writer.addRows(data)
 
     before (done) ->
-        writer.pack (err) ->
+        writer.writeToFile (err) ->
             return done(err) if err
 
             parser filename, (err, workbook) ->
@@ -54,5 +54,5 @@ describe 'Column Width Test', ->
         for key, index in _.keys(data[0])
             assert.equal(result[0][index], key)
 
+    # Need a way to actually measure this... can we get raw sheet data from `excel`?
     xit 'Should have proper column widths', ->
-        # herp
