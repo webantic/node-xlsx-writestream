@@ -9,10 +9,8 @@ module.exports = (grunt) ->
 
     @initConfig
         benchmark:
-            options:
-                displayResults: true
             all:
-                src: ['benchmarks/*.js'],
+                src: ['benchmarks/*.js']
 
         coffee:
             all:
@@ -49,4 +47,4 @@ module.exports = (grunt) ->
     @registerTask 'build', ['clean', 'coffee']
     @registerTask 'package', ['build', 'release']
     @registerTask 'test', ['build', 'mkdir', 'mochacli']
-    @registerTask 'bench', ['build', 'benchmark']
+    @registerTask 'bench', ['build', 'mkdir', 'benchmark']
