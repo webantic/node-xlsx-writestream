@@ -16,7 +16,7 @@ function generateData(size){
   return _.map(range, function() {
     var out = {};
     _.each(range, function(dataValue){
-      out[dataValue] = Math.random() * 10000;
+      out[dataValue] = Math.random() * 10000 + '';
     });
     return out;
   });

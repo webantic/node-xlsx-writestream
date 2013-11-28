@@ -7,8 +7,11 @@ module.
     fs = require('fs')
     blobs = require('./blobs')
     Archiver = require('archiver')
+    numberRegex = /^[1-9\.][\d\.]+$/
 
     module.exports = class XlsxWriter
+
+
 
 
 ### Simple writes
@@ -234,7 +237,7 @@ Adds a cell to the row in progress.
         row = @currentRow
         cell = @_getCellIdentifier(row, col)
 
-        if typeof value == 'number'
+        if typeof value == 'number' or numberRegex.test(value)
           @rowBuffer += blobs.numberCell(value, cell)
         else if value instanceof Date
           date = @_dateToOADate(value)
