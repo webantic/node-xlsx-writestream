@@ -9,8 +9,6 @@ module.exports = (grunt) ->
 
     @initConfig
         benchmark:
-            options:
-                displayResults: true
             all:
                 src: ['benchmarks/*.js'],
 

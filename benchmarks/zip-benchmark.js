@@ -1,9 +1,9 @@
 var _ = require('underscore');
 global.XlsxWriter = require('..');
 
-global.filename = "tmp/benchmark-test.xlsx";
+global.fileName = "tmp/benchmark-test.xlsx";
 function generateDoc(data, cb) {
-  XlsxWriter.write(filename, data, cb);
+  XlsxWriter.write(fileName, data, cb);
 }
 
 // Generate a size*size grid of data.
@@ -25,6 +25,21 @@ var largeDataSize = 200;
 global.smallData = generateData(smallDataSize);
 global.largeData = generateData(largeDataSize);
 
+global.parallelWork = function(fileName, data, parallelism, cb) {
+  var finished = _.after(parallelism, cb);
+
+  for (var i = 0; i < parallelism; i++) {
+    work(fileName, data, finished);
+  }
+};
+
+// Individual file pack & write
+global.work = function(fileName, data, cb) {
+  XlsxWriter.write(fileName, data, function() {
+    cb();
+  });
+};
+
 
 // We don't run any tests with defer:true, just using it
 // causes synchronous tests to lose perf by two orders of magnitude.
@@ -35,7 +50,15 @@ module.exports = {
     'Small dataset - Generate entire file': {
       defer: true,
       fn: function(deferred){
-        XlsxWriter.write(filename, smallData, function() {
+        work(fileName, smallData, function() {
+          deferred.resolve();
+        });
+      }
+    },
+    'Small dataset - Generate entire file (parallelism: 10)': {
+      defer: true,
+      fn: function(deferred){
+        parallelWork(fileName, smallData, 10, function() {
           deferred.resolve();
         });
       }
@@ -43,7 +66,15 @@ module.exports = {
     'Large dataset - Generate entire file': {
       defer: true,
       fn: function(deferred){
-        XlsxWriter.write(filename, largeData, function() {
+        work(fileName, largeData, function() {
+          deferred.resolve();
+        });
+      }
+    },
+    'Large dataset - Generate entire file (parallelism: 10)': {
+      defer: true,
+      fn: function(deferred){
+        parallelWork(fileName, largeData, 10, function() {
           deferred.resolve();
         });
       }
