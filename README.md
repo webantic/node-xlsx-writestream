@@ -90,6 +90,29 @@
         "A Date Column" : new Date(1999,11,31)
     })
 
+## Speed
+
+The XLSX format is actually a zip file, and Node-XLSX-Writer uses [node-zip](https://github.com/daraosn/node-zip) internally.
+Node-zip generates zip files synchronously but is very fast.
+
+Pending a possible asynchronous rework, if speed is a big concern to you, run `pack()` in 
+a thread using something like [node-webworker-threads](https://github.com/audreyt/node-webworker-threads).
+
+This repo contains a simple benchmark suite that can give you an idea of how this module
+will perform using a 10x10 and 200x200 dataset. The following are results on an 2.6GHz i7 Mac Mini:
+
+```
+Running suite Node-Xlsx-Writer benchmarks [benchmarks/zip-benchmark.js]...
+>> Small dataset (10x10) - Packing x 643 ops/sec ±0.69% (95 runs sampled)
+>> Small dataset - Packing (no compression) x 3,057 ops/sec ±1.00% (98 runs sampled)
+>> Small dataset - Adding rows x 9,042 ops/sec ±36.26% (32 runs sampled)
+>> Small dataset - Generate entire file x 607 ops/sec ±0.79% (95 runs sampled)
+>> Large dataset (200x200) - Packing x 2.12 ops/sec ±6.35% (9 runs sampled)
+>> Large dataset - Packing (no compression) x 4.29 ops/sec ±10.83% (14 runs sampled)
+>> Large dataset - Adding rows x 22.00 ops/sec ±26.83% (41 runs sampled)
+>> Large dataset - Generate entire file x 1.89 ops/sec ±9.29% (9 runs sampled)
+```
+
 ## Contributing
 
   In lieu of a formal styleguide, take care to maintain the existing coding
