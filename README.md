@@ -54,7 +54,7 @@
 
     var XlsxWriter = require('xlsx-writer');
 
-    var writer = new XlsxWriter('mySpreadsheet.xlsx');
+    var writer = new XlsxWriter('mySpreadsheet.xlsx', {} /* options */);
 
     // Add some rows
     writer.addRow({
@@ -72,12 +72,9 @@
         { width: 10 }
     ])
 
-    // Finalize the spreadsheet. Pass compression options here.
-    var buf = writer.pack();
-
-    fs.writeFile('mySpreadsheet.xlsx', buf, 'binary', function(err){
-      // ...  
-    });
+    // Finalize the spreadsheet.
+    var fileStream = fs.createWriteStream('mySpreadsheet.xlsx');
+    writer.createReadStream().pipe(fileStream);
 
 ## Data Types
   

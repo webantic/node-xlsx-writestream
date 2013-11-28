@@ -47,6 +47,6 @@
     "spreadsheet"
   ],
   "dependencies": {
-    "archiver": "~0.4.10"
+    "archiver": "ctalkington/node-archiver"
   }
 }

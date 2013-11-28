@@ -29,26 +29,20 @@ var largeDataSize = 200;
 global.smallData = generateData(smallDataSize);
 global.largeData = generateData(largeDataSize);
 
-global.parallelWork = function(writer, fileName, packOptions, parallelism, cb) {
+global.parallelWork = function(writer, fileName, parallelism, cb) {
   var finished = _.after(parallelism, cb);
 
   for (var i = 0; i < parallelism; i++) {
-    work(writer, fileName + i, {}, finished);
+    work(writer, fileName + i, finished);
   }
 };
 
 // Individual file pack & write
-global.work = function(writer, fileName, packOptions, cb) {
-  var readStream = writer.pack(packOptions);
+global.work = function(writer, fileName, cb) {
   var fileStream = fs.createWriteStream(fileName);
   fileStream.once('finish', cb);
-  readStream.pipe(fileStream);
+  writer.createReadStream().pipe(fileStream);
 };
-
-
-// We don't run any tests with defer:true, just using it
-// causes synchronous tests to lose perf by two orders of magnitude.
-// Since JSZip is synchronous, this appears to be fair.
 
 module.exports = {
   name: 'Node-XLSX-Writer benchmarks',
@@ -61,7 +55,7 @@ module.exports = {
         writer.finalize();
       },
       fn: function(deferred){
-        work(writer, fileName, {}, function(){
+        work(writer, fileName, function(){
           deferred.resolve();
         });
       }
@@ -69,12 +63,12 @@ module.exports = {
     'Small dataset - Packing (no compression)': {
       defer: true,
       setup: function() {
-        var writer = new XlsxWriter();
+        var writer = new XlsxWriter({zip: {zlib: {level: 0}}});
         writer.addRows(smallData);
         writer.finalize();
       },
       fn: function(deferred){
-        work(writer, fileName, {zlib: {level: 0}}, function(){
+        work(writer, fileName, function(){
           deferred.resolve();
         });
       }
@@ -88,7 +82,7 @@ module.exports = {
       },
       fn: function(deferred){
         var parallelism = 10;
-        parallelWork(writer, fileName, {}, 10, function(){
+        parallelWork(writer, fileName, 10, function(){
           deferred.resolve();
         });
       }
