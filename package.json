@@ -1,27 +1,22 @@
 {
   "name": "xlsx-writer",
-  "description": "Simple XLSX writer.",
-  "version": "0.0.9",
-  "homepage": "https://github.com/rubenv/node-xlsx-writer",
-  "author": {
-    "name": "Ruben Vermeersch",
-    "email": "ruben@savanne.be",
-    "url": "http://savanne.be/"
-  },
+  "description": "Streaming XLSX writer. Forked from rubenv/node-xlsx-writer.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/ssafejava/node-xlsx-writer",
   "repository": {
     "type": "git",
-    "url": "git://github.com/rubenv/node-xlsx-writer.git"
+    "url": "git://github.com/ssafejava/node-xlsx-writer.git"
   },
   "bugs": {
-    "url": "https://github.com/rubenv/node-xlsx-writer/issues"
+    "url": "https://github.com/ssafejava/node-xlsx-writer/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/rubenv/node-xlsx-writer/blob/master/LICENSE"
+      "url": "https://github.com/ssafejava/node-xlsx-writer/blob/master/LICENSE"
     }
   ],
-  "main": "lib/index.js",
+  "main": "index.js",
   "engines": {
     "node": ">= 0.8.0"
   },
@@ -34,7 +29,6 @@
     "grunt-contrib-clean": "~0.4.0",
     "grunt": "~0.4.0",
     "grunt-mocha-cli": "~1.0.1",
-    "coffee-script": "~1.6.1",
     "grunt-mkdir": "~0.1.0",
     "excel": "0.0.60",
     "underscore": "~1.4.4",
@@ -47,6 +41,7 @@
     "spreadsheet"
   ],
   "dependencies": {
-    "archiver": "ctalkington/node-archiver"
+    "archiver": "ctalkington/node-archiver",
+    "coffee-script": "~1.6.3"
   }
 }
