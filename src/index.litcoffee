@@ -65,6 +65,9 @@ When constructing a writer, pass it an optional file path and customization opti
         # Start sheet.
         @_resetSheet()
 
+        # Write column definition.
+        @defineColumns(@options.columns)
+
         # Create Zip.
         zipOptions = @options.zip || {}
         zipOptions.forceUTC = true # force this on in all cases for now, otherwise we're useless
@@ -120,6 +123,31 @@ Rows can be added in batch.
       addRows: (rows) ->
         for row in rows
           @addRow(row)
+
+##### defineColumns(columns: Array)
+
+Column definitions can be easily added, but it *must* be done before rows are added
+to prevent a nasty Excel bug.
+
+      # @example (javascript)
+      # writer.defineColumns([
+      #     {  width: 30 }, // width is in 'characters'
+      #     {  width: 10 }
+      # ])
+      defineColumns: (columns) ->
+        if @haveHeader
+          throw new Error """
+            Columns cannot be added after rows! Unfortunately Excel will crash
+            if column definitions come after sheet data. Please move your `defineColumns()`
+            call before any `addRow()` calls, or define options.columns in the XlsxWriter
+            constructor.
+          """
+        @options.columns = columns
+        # Write column metadata.
+        # Would really like to do this at the end so that we don't have to mandate
+        # it comes first, but Excel pukes if <cols> comes before <sheetData>.
+        @_write(@_generateColumnDefinition())
+
 
 #### File generation
 
@@ -376,11 +404,6 @@ Resets sheet data. Called on initialization.
 
         # Start off the sheet.
         @_write(blobs.sheetHeader)
-
-        # Write column metadata.
-        # Would really like to do this at the end (so that we don't have to mandate)
-        # it comes first, but Excel pukes if <cols> comes before <sheetData>.
-        @_write(@_generateColumnDefinition())
 
 Wrapper around writing sheet data.
 
