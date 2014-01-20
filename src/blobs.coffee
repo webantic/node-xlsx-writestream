@@ -128,8 +128,6 @@ module.exports =
             <sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"/>
     """.replace(/\n\s*/g, '')
 
-    dimensions: (dimensions) -> """<dimension ref="#{dimensions}"/>"""
-
     startColumns: """<cols>"""
     column: (width, index) -> """<col min="#{index}" max="#{index}" width="#{width}" customWidth="1"/>"""
     endColumns: """</cols>"""
