@@ -1,7 +1,7 @@
 {
   "name": "xlsx-writer",
   "description": "Streaming XLSX writer. Forked from rubenv/node-xlsx-writer.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "homepage": "https://github.com/ssafejava/node-xlsx-writer",
   "repository": {
     "type": "git",
