@@ -13,7 +13,6 @@ module.
 
 
 
-
 ### Simple writes
 
 ##### XlsxWriter.write(out: String, data: Array, cb: Function)
@@ -41,6 +40,12 @@ When constructing a writer, pass it an optional file path and customization opti
 
       # Build a writer object.
       # @param {Object} [options] Preparation options.
+      # @param {String} [options.out] Output file path.
+      # @param {Array}  [options.columns] Column definition. Must be added in constructor.
+      # @example options.columns = [
+      #     {  width: 30 }, // width is in 'characters'
+      #     {  width: 10 }
+      # ]
       constructor: (options = {}) ->
 
         # Support just passing a string path into the constructor.
@@ -52,7 +57,8 @@ When constructing a writer, pass it an optional file path and customization opti
             defaultWidth: 15
             zip: {
               forceUTC: true # this is required, zips will be unreadable without it
-            }
+            },
+            cols: []
         }
         @options = _extend(defaults, options)
 
@@ -114,17 +120,6 @@ Rows can be added in batch.
       addRows: (rows) ->
         for row in rows
           @addRow(row)
-
-##### defineColumns(columns: Array)
-
-Column definitions can be easily added.
-
-      # @example (javascript)
-      # writer.defineColumns([
-      #     {  width: 30 }, // width is in 'characters'
-      #     {  width: 10 }
-      # ])
-      defineColumns: (@columns) ->
 
 #### File generation
 
@@ -193,13 +188,6 @@ Finishes up the sheet & generate shared strings.
         if @haveHeader
           @_write(blobs.sheetDataFooter)
 
-        # Write column metadata
-        @_write(@_generateColumnDefinition())
-
-        # Write dimensions
-        colCount = Object.keys(@cellLabelMap).length
-        @_write(blobs.dimensions(@_getDimensionsData(@currentRow, colCount)))
-
         # End sheet
         @sheetStream.end(blobs.sheetFooter);
 
@@ -258,14 +246,6 @@ Ends a row. Will write the row to the sheet.
       _endRow: () ->
         @_write(@rowBuffer + blobs.endRow)
 
-Internal generator for writing dimension data to the sheet.
-
-      # @param {Number} rows Row count.
-      # @param {Number} cols Column count.
-      # @return {String}     SpreadsheetML dimension data.
-      _getDimensionsData: (rows, columns) ->
-        return "A1:" + @_getCellIdentifier(rows, columns)
-
 Given row and column indices, returns a cell identifier, e.g. "E20"
 
       # @param {Number} row  Row index.
@@ -299,7 +279,7 @@ This will write column styles, widths, etc.
         columnDefinition += blobs.startColumns
 
         idx = 1
-        for index, column of @columns
+        for index, column of @options.columns
           columnDefinition += blobs.column(column.width || @options.defaultWidth, idx)
           idx += 1
 
@@ -392,6 +372,11 @@ Resets sheet data. Called on initialization.
 
         # Start off the sheet.
         @_write(blobs.sheetHeader)
+
+        # Write column metadata.
+        # Would really like to do this at the end (so that we don't have to mandate)
+        # it comes first, but Excel pukes if <cols> comes before <sheetData>.
+        @_write(@_generateColumnDefinition())
 
 Wrapper around writing sheet data.
 
