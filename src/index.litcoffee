@@ -58,7 +58,7 @@ When constructing a writer, pass it an optional file path and customization opti
             zip: {
               forceUTC: true # this is required, zips will be unreadable without it
             },
-            cols: []
+            columns: []
         }
         @options = _extend(defaults, options)
 
@@ -275,6 +275,10 @@ This will write column styles, widths, etc.
 
       # @return {String} Column definition.
       _generateColumnDefinition: () ->
+        # <cols/> tag (empty) crashes excel, weeeeee
+        if !@options.columns || !@options.columns.length
+          return ''
+
         columnDefinition = ''
         columnDefinition += blobs.startColumns
 
