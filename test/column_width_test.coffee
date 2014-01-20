@@ -28,7 +28,7 @@ describe 'Column Width Test', ->
 
 
     before (done) ->
-        writer = new XlsxWriter(filename)
+        writer = new XlsxWriter({out: filename, columns: columns})
 
         writer.addRows(data)
 
