@@ -146,3 +146,27 @@ module.exports =
         </worksheet>
     """.replace(/\n\s*/g, '')
 
+
+    #
+    # Rel strings
+    #
+
+    # Printed inside worksheet
+    worksheetRels: (relationships) ->
+        out = "<hyperlinks>"
+        for rel, i in relationships
+            out += """<hyperlink ref="#{rel.cell}" r:id="rId#{i + 1}" />"""
+        out += "</hyperlinks>"
+        return out
+
+    # Printed in xl/worksheets/_rels/sheet1.xml.rels
+    externalWorksheetRels: (relationships) ->
+        out = """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        """
+        for rel, i in relationships
+            out += """<Relationship Id="rId#{i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#{rel.target}" TargetMode="External" />"""
+        out += """</Relationships>"""
+        return out.replace(/\n\s*/g, '')
+
