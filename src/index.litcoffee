@@ -201,6 +201,7 @@ Will finalize the sheet & generate shared strings if they haven't been already.
           .append(blobs.workbook, {name: 'xl/workbook.xml'})
           .append(blobs.styles, {name: 'xl/styles.xml'})
           .append(blobs.workbookRels, {name: 'xl/_rels/workbook.xml.rels'})
+          .append(@relsData, {name: 'xl/worksheets/_rels/sheet1.xml.rels'})
           .append(@stringsData, {name: 'xl/sharedStrings.xml'})
           .finalize()
 
@@ -216,11 +217,17 @@ Finishes up the sheet & generate shared strings.
         if @haveHeader
           @_write(blobs.sheetDataFooter)
 
+        # Write relationships data.
+        @_write(blobs.worksheetRels(@relationships))
+
         # End sheet
         @sheetStream.end(blobs.sheetFooter);
 
         # Generate shared strings
         @_generateStrings()
+
+        # Generate external rels
+        @_generateRelationships()
 
         # Mark this as finished
         @finalized = true
@@ -253,6 +260,12 @@ Adds a cell to the row in progress.
         row = @currentRow
         cell = @_getCellIdentifier(row, col)
 
+        # Hyperlink support
+        if Object.prototype.toString.call(value) == '[object Object]' && value.hyperlink && value.value
+          @_addCell(value.value, col)
+          @_createRelationship(cell, value.hyperlink)
+          return
+
         if typeof value == 'number' or numberRegex.test(value)
           @rowBuffer += blobs.numberCell(value, cell)
         else if value instanceof Date
@@ -261,6 +274,8 @@ Adds a cell to the row in progress.
         else
           index = @_lookupString(value)
           @rowBuffer += blobs.cell(index, cell)
+
+
 
 Begins a row. Call this before starting any row. Will start a buffer
 for all proceeding cells, until @_endRow is called.
@@ -321,7 +336,7 @@ This will write column styles, widths, etc.
 Generates StringMap XML. Used as a finalization step - don't call this while
 building the xlsx is in progress.
 
-Saves string data to this object so it can be written by `pack()`.
+Saves string data to this object so it can be written to the zip.
 
       _generateStrings: () ->
         stringTable = ''
@@ -339,6 +354,16 @@ Looks up a string inside the internal string map. If it doesn't exist, it will b
           @strings.push(value)
           @stringIndex += 1
         return @stringMap[value]
+
+Create a relationship. For now, this is always a hyperlink. This writes to a array that will later be used define the rels.
+
+      _createRelationship: (cell, target) ->
+        @relationships.push({cell: cell, target: target})
+
+Generate external relationships data. This is saved into "xl/worksheets/_rels/sheet1.xml.rels".
+
+      _generateRelationships: () ->
+        @relsData = blobs.externalWorksheetRels(@relationships)
 
 Converts a Date to an OADate.
 See [this stackoverflow post](http://stackoverflow.com/a/15550284/2644351)
@@ -394,6 +419,10 @@ Resets sheet data. Called on initialization.
         # Column data storage
         @columns = []
 
+        # Rels data storage
+        @relData = ''
+        @relationships = []
+
         # Flags
         @haveHeader = false
         @finalized = false
@@ -418,8 +447,6 @@ Utility method for escaping XML - used within blobs and can be used manually.
         return str.replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
-
-
 
 Simple extend helper.
 

@@ -66,6 +66,12 @@
         "Location": "France"
     });
 
+    // Add a row with a hyperlink
+    writer.addRow({
+        "Name": {value: "Bill", hyperlink: "http://www.thegatesnotes.com"},
+        "Location": "Seattle, Washington"  
+    })
+
     // Optional: Adjust column widths
     writer.defineColumns([
         { width: 30 }, // width is in 'characters'
@@ -79,12 +85,16 @@
 ## Data Types
   
   Numbers, Strings, and Dates are automatically converted when inputted. Simply
-  use their native types:
+  use their native types. Additionally, any data item can be turned into a hyperlink
+  by enclosing it within an object with the keys `value, hyperlink`.
 
     writer.addRow({
         "A String Column" : "A String Value",
         "A Number Column" : 12345,
         "A Date Column" : new Date(1999,11,31)
+        "A String column with a hyperlink" : {value: "A String Value", hyperlink: "http://www.google.com"}
+        "A Number column with a hyperlink" : {value: 12345, hyperlink: "http://www.google.com"}
+        "A Date column with a hyperlink" : {value: new Date(1999,11,31), hyperlink: "http://www.google.com"}
     })
 
 ## Speed
