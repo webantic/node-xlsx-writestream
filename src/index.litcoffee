@@ -261,7 +261,9 @@ Adds a cell to the row in progress.
         cell = @_getCellIdentifier(row, col)
 
         # Hyperlink support
-        if Object.prototype.toString.call(value) == '[object Object]' && value.hyperlink && value.value
+        if Object.prototype.toString.call(value) == '[object Object]'
+          if !value.value || !value.hyperlink
+            throw new Error("A hyperlink cell must have both 'value' and 'hyperlink' keys.")
           @_addCell(value.value, col)
           @_createRelationship(cell, value.hyperlink)
           return
