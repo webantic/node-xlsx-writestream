@@ -1,7 +1,7 @@
-Node-XLSX-Writer
+Node-XLSX-Stream
 ================
 
-Node-XLSX-Writer is written in literate coffeescript. The following is the actual source of the 
+Node-XLSX-Stream is written in literate coffeescript. The following is the actual source of the 
 module.
 
     fs = require('fs')
@@ -17,7 +17,7 @@ module.
 
 ##### XlsxWriter.write(out: String, data: Array, cb: Function)
 
-The simplest way to use Node-XLSX-Writer is to use the write method.
+The simplest way to use Node-XLSX-Stream is to use the write method.
 
 The callback comes directly from `fs.writeFile` and has the arity `(err)`
 
@@ -31,7 +31,7 @@ The callback comes directly from `fs.writeFile` and has the arity `(err)`
 
 ### Advanced usage
 
-Node-XLSX-Writer has more advanced features available for better customization
+Node-XLSX-Stream has more advanced features available for better customization
 of spreadsheets.
 
 When constructing a writer, pass it an optional file path and customization options.

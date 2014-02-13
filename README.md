@@ -1,10 +1,10 @@
-# XLSX writer
+# Node-XLSX-Writestream
 
-  Simple XLSX writer. Reverse-engineered from sample XLSX files.
+  Simple streaming XLSX writer. Reverse-engineered from sample XLSX files.
   
-  [![Build Status](https://travis-ci.org/rubenv/node-xlsx-writer.png?branch=master)](https://travis-ci.org/rubenv/node-xlsx-writer)
+  [![Build Status](https://travis-ci.org/ssafejava/node-xlsx-writestream.png?branch=master)](https://travis-ci.org/ssafejava/node-xlsx-writestream)
 
-  Node-XLSX-Writer is written in [Literate CoffeeScript](http://coffeescript.org/#literate), so the source
+  Node-XLSX-Stream is written in [Literate CoffeeScript](http://coffeescript.org/#literate), so the source
   can be viewed as Markdown. 
 
   [View the source & API.](src/index.litcoffee)
@@ -13,11 +13,11 @@
   
   You can install the latest version via npm:
   
-    $ npm install --save xlsx-writer
+    $ npm install --save xlsx-stream
 
   Require the module:
 
-    var xlsx = require('xlsx-writer');
+    var xlsx = require('xlsx-stream');
 
   Write a spreadsheet:
 
@@ -52,7 +52,7 @@
   You can also use the full API manually. This allows you to build the
   spreadsheet incrementally:
 
-    var XlsxWriter = require('xlsx-writer');
+    var XlsxWriter = require('xlsx-writestream');
 
     var writer = new XlsxWriter('mySpreadsheet.xlsx', {} /* options */);
 
@@ -99,7 +99,7 @@
 
 ## Speed
 
-The XLSX format is actually a zip file, and Node-XLSX-Writer uses [node-zip](https://github.com/daraosn/node-zip) internally.
+The XLSX format is actually a zip file, and Node-XLSX-Stream uses [node-zip](https://github.com/daraosn/node-zip) internally.
 Node-zip generates zip files synchronously but is very fast.
 
 Pending a possible asynchronous rework, if speed is a big concern to you, run `pack()` in 
@@ -109,7 +109,7 @@ This repo contains a simple benchmark suite that can give you an idea of how thi
 will perform using a 10x10 and 200x200 dataset. The following are results on an 2.6GHz i7 Mac Mini:
 
 ```
-Running suite Node-Xlsx-Writer benchmarks [benchmarks/zip-benchmark.js]...
+Running suite Node-XLSX-Stream benchmarks [benchmarks/zip-benchmark.js]...
 >> Small dataset (10x10) - Packing x 643 ops/sec ±0.69% (95 runs sampled)
 >> Small dataset - Packing (no compression) x 3,057 ops/sec ±1.00% (98 runs sampled)
 >> Small dataset - Adding rows x 9,042 ops/sec ±36.26% (32 runs sampled)
@@ -135,8 +135,6 @@ Running suite Node-Xlsx-Writer benchmarks [benchmarks/zip-benchmark.js]...
 ## License 
 
     (The MIT License)
-
-    Copyright (C) 2013 by Ruben Vermeersch <ruben@savanne.be>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
