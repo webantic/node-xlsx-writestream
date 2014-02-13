@@ -37,7 +37,7 @@ global.work = function(writerObj, fileName, cb) {
 };
 
 module.exports = {
-  name: 'Node-XLSX-Writer benchmarks',
+  name: 'Node-XLSX-Stream benchmarks',
   onError: function(err) { // amazingly useless
     console.error('error caught');
     console.error(err.target.error.stack);
