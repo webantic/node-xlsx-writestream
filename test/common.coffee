@@ -42,6 +42,9 @@ module.exports = (name, data) ->
                     fileVal = row[index]
                     srcVal = data[rowNr - 1][key] || ""
 
+                    if srcVal instanceof Object && srcVal.hyperlink
+                        srcVal = srcVal.value
+
                     # Date handling - comes back from sheet as an OADate, but is Date in source
                     if srcVal instanceof Date
                         fileVal = XLSXInstance._OADateToDate(fileVal).valueOf()
