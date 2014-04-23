@@ -25,9 +25,9 @@ The callback comes directly from `fs.writeFile` and has the arity `(err)`
       # @param {Array} data Data to write.
       # @param {Function} cb Callback to call when done. Fed (err).
       @write = (out, data, cb) ->
-          writer = new XlsxWriter({out: out})
-          writer.addRows(data)
-          writer.writeToFile(cb)
+        writer = new XlsxWriter({out: out})
+        writer.addRows(data)
+        writer.writeToFile(cb)
 
 ### Advanced usage
 
@@ -54,11 +54,11 @@ When constructing a writer, pass it an optional file path and customization opti
 
         # Set options.
         defaults = {
-            defaultWidth: 15
-            zip: {
-              forceUTC: true # this is required, zips will be unreadable without it
-            },
-            columns: []
+          defaultWidth: 15
+          zip: {
+            forceUTC: true # this is required, zips will be unreadable without it
+          },
+          columns: []
         }
         @options = _extend(defaults, options)
 
@@ -75,7 +75,7 @@ When constructing a writer, pass it an optional file path and customization opti
 
         # Archiver attaches an exit listener on the process, we don't want this,
         # it will fire if this object is never finalized.
-        @zip.catchEarlyExitAttached = true 
+        @zip.catchEarlyExitAttached = true
 
         # Hook this passthrough into the zip stream.
         @zip.append(@sheetStream, {name: 'xl/worksheets/sheet1.xml'})
@@ -176,42 +176,41 @@ The callback is fed directly to `fs.writeFile`.
 
         # Create zip, pipe it into a file writeStream.
         zip = @createReadStream(fileName)
-        fileStream = fs.createWriteStream(fileName);
+        fileStream = fs.createWriteStream(fileName)
         fileStream.once 'finish', cb
         zip.pipe(fileStream)
+        @finalize()
 
-
-##### createReadStream([jsZipOptions]: Object) : Stream
-
-Packs the file and returns a readable stream. You can pipe this directly to a file
-or response object. Be sure to use 'binary' mode.
-
-Will finalize the sheet & generate shared strings if they haven't been already. 
+##### createReadStream() : Stream **Deprecated**
 
       # @return {Stream} Readable stream with ZIP data.
-      createReadStream: (options) ->
+      createReadStream: () ->
+        @getReadStream()
 
-        # Finalize sheet if it hasn't been already.
-        if (!@finalized)
-          @finalize()
+##### getReadStream() : Stream
 
+Returns a readable stream from this file. You can pipe this directly to a file
+or response object. Be sure to use 'binary' mode.
+
+You are responsible for indicating that you have finished
+the file generation by calling `finalize()`, which will end the sheet stream.
+
+      # @return {Stream} Readable stream with ZIP data.
+      getReadStream: () ->
         @zip
-          .append(blobs.contentTypes, {name: '[Content_Types].xml'})
-          .append(blobs.rels, {name: '_rels/.rels'})
-          .append(blobs.workbook, {name: 'xl/workbook.xml'})
-          .append(blobs.styles, {name: 'xl/styles.xml'})
-          .append(blobs.workbookRels, {name: 'xl/_rels/workbook.xml.rels'})
-          .append(@relsData, {name: 'xl/worksheets/_rels/sheet1.xml.rels'})
-          .append(@stringsData, {name: 'xl/sharedStrings.xml'})
-          .finalize()
-
-        return @zip
 
 ##### finalize()
 
-Finishes up the sheet & generate shared strings.
+Finishes up the sheet & generate shared strings. You must call this manually if
+you are using `createReadStream`.
 
       finalize: () ->
+
+        if @finalized
+          throw new Error "This XLSX was already finalized."
+
+        # Mark this as finished
+        @finalized = true
 
         # If there was data, end sheetData
         if @haveHeader
@@ -220,17 +219,18 @@ Finishes up the sheet & generate shared strings.
         # Write relationships data.
         @_write(blobs.worksheetRels(@relationships))
 
-        # End sheet
-        @sheetStream.end(blobs.sheetFooter);
-
         # Generate shared strings
         @_generateStrings()
 
         # Generate external rels
         @_generateRelationships()
 
-        # Mark this as finished
-        @finalized = true
+        # End sheet
+        @sheetStream.end(blobs.sheetFooter)
+
+        # Add supporting files to zip and finalize it. The readStream (@zip) will soon emit
+        # an 'end' event.
+        @_finalizeZip()
 
 ##### dispose()
 
@@ -290,6 +290,7 @@ Ends a row. Will write the row to the sheet.
 
       _endRow: () ->
         @_write(@rowBuffer + blobs.endRow)
+
 
 Given row and column indices, returns a cell identifier, e.g. "E20"
 
@@ -357,7 +358,8 @@ Looks up a string inside the internal string map. If it doesn't exist, it will b
           @stringIndex += 1
         return @stringMap[value]
 
-Create a relationship. For now, this is always a hyperlink. This writes to a array that will later be used define the rels.
+Create a relationship. For now, this is always a hyperlink. 
+This writes to a array that will later be used define the rels.
 
       _createRelationship: (cell, target) ->
         @relationships.push({cell: cell, target: target})
@@ -376,7 +378,7 @@ See [this stackoverflow post](http://stackoverflow.com/a/15550284/2644351)
         epoch = new Date(1899,11,30)
         msPerDay = 8.64e7
 
-        v = -1 * (epoch - date) / msPerDay;
+        v = -1 * (epoch - date) / msPerDay
 
         # Deal with dates prior to 1899-12-30 00:00:00
         dec = v - Math.floor(v)
@@ -436,6 +438,19 @@ Resets sheet data. Called on initialization.
         # Start off the sheet.
         @_write(blobs.sheetHeader)
 
+Finalizes this file and adds supporting docs. Should not be called directly.
+
+      _finalizeZip: () ->
+        @zip
+          .append(blobs.contentTypes, {name: '[Content_Types].xml'})
+          .append(blobs.rels, {name: '_rels/.rels'})
+          .append(blobs.workbook, {name: 'xl/workbook.xml'})
+          .append(blobs.styles, {name: 'xl/styles.xml'})
+          .append(blobs.workbookRels, {name: 'xl/_rels/workbook.xml.rels'})
+          .append(@relsData, {name: 'xl/worksheets/_rels/sheet1.xml.rels'})
+          .append(@stringsData, {name: 'xl/sharedStrings.xml'})
+          .finalize()
+
 Wrapper around writing sheet data.
 
       # @param {String} data Data to write to the sheet.
@@ -455,4 +470,4 @@ Simple extend helper.
     _extend = (dest, src) ->
       for key, val of src
         dest[key] = val
-      dest 
+      dest

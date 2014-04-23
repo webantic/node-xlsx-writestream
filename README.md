@@ -56,6 +56,9 @@
 
     var writer = new XlsxWriter('mySpreadsheet.xlsx', {} /* options */);
 
+    // After instantiation, you can grab the readstream at any time.
+    writer.getReadStream().pipe(fs.createWriteStream('mySpreadsheet.xlsx'));
+
     // Add some rows
     writer.addRow({
         "Name": "Bob",
@@ -78,9 +81,8 @@
         { width: 10 }
     ])
 
-    // Finalize the spreadsheet.
-    var fileStream = fs.createWriteStream('mySpreadsheet.xlsx');
-    writer.createReadStream().pipe(fileStream);
+    // Finalize the spreadsheet. If you don't do this, the readstream will not end.
+    writer.finalize();
 
 ## Data Types
   
