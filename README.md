@@ -2,7 +2,7 @@
 
 Simple streaming XLSX writer. Reverse-engineered from sample XLSX files.
 
-[![Build Status](https://travis-ci.org/ssafejava/node-xlsx-writestream.png?branch=master)](https://travis-ci.org/ssafejava/node-xlsx-writestream)
+[![Build Status](https://travis-ci.org/ssafejava/node-xlsx-writestream.png?branch=master)](https://travis-ci.org/strml/node-xlsx-writestream)
 
 Node-XLSX-WriteStream is written in [Literate CoffeeScript](http://coffeescript.org/#literate), so the source
 can be viewed as Markdown. 
