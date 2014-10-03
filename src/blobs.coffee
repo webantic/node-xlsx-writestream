@@ -160,7 +160,7 @@ module.exports =
             out += "</hyperlinks>"
             return out
         else
-            return "";
+            return ""
 
     # Printed in xl/worksheets/_rels/sheet1.xml.rels
     externalWorksheetRels: (relationships) ->
