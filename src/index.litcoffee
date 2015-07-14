@@ -1,13 +1,12 @@
 Node-XLSX-Stream
 ================
 
-Node-XLSX-Stream is written in literate coffeescript. The following is the actual source of the 
+Node-XLSX-Stream is written in literate coffeescript. The following is the actual source of the
 module.
 
     fs = require('fs')
     blobs = require('./blobs')
     Archiver = require('archiver')
-    numberRegex = /^[1-9\.][\d\.]+$/
 
     module.exports = class XlsxWriter
 
@@ -82,7 +81,7 @@ When constructing a writer, pass it an optional file path and customization opti
 
 #### Adding rows
 
-Rows are easy to add one by one or all at once. Data types within the sheet will 
+Rows are easy to add one by one or all at once. Data types within the sheet will
 be inferred from the data types passed to addRow().
 
 ##### addRow(row: Object)
@@ -268,7 +267,7 @@ Adds a cell to the row in progress.
           @_createRelationship(cell, value.hyperlink)
           return
 
-        if typeof value == 'number' or numberRegex.test(value)
+        if typeof value == 'number'
           @rowBuffer += blobs.numberCell(value, cell)
         else if value instanceof Date
           date = @_dateToOADate(value)
@@ -358,7 +357,7 @@ Looks up a string inside the internal string map. If it doesn't exist, it will b
           @stringIndex += 1
         return @stringMap[value]
 
-Create a relationship. For now, this is always a hyperlink. 
+Create a relationship. For now, this is always a hyperlink.
 This writes to a array that will later be used define the rels.
 
       _createRelationship: (cell, target) ->
