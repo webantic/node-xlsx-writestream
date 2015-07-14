@@ -1,20 +1,20 @@
 {
   "name": "xlsx-writestream",
   "description": "Streaming XLSX writer. Forked from rubenv/node-xlsx-writer.",
-  "version": "0.3.0",
-  "homepage": "https://github.com/ssafejava/node-xlsx-writestream",
-  "author": "ssafejava",
+  "version": "0.4.0",
+  "homepage": "https://github.com/STRML/node-xlsx-writestream",
+  "author": "STRML (Samuel Reed)",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ssafejava/node-xlsx-writestream.git"
+    "url": "git://github.com/STRML/node-xlsx-writestream.git"
   },
   "bugs": {
-    "url": "https://github.com/ssafejava/node-xlsx-writestream/issues"
+    "url": "https://github.com/STRML/node-xlsx-writestream/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/ssafejava/node-xlsx-writestream/blob/master/LICENSE"
+      "url": "https://github.com/STRML/node-xlsx-writestream/blob/master/LICENSE"
     }
   ],
   "main": "index.js",
