@@ -136,18 +136,20 @@ Pending a possible asynchronous rework, if speed is a big concern to you, run `p
 a thread using something like [node-webworker-threads](https://github.com/audreyt/node-webworker-threads).
 
 This repo contains a simple benchmark suite that can give you an idea of how this module
-will perform using a 10x10 and 200x200 dataset. The following are results on an 2.6GHz i7 Mac Mini:
+will perform using a 10x10 and 200x200 dataset.
+The following are results on an 2.3GHz i7 Macbook Pro Retina (2013):
 
 ```
 Running suite Node-XLSX-WriteStream benchmarks [benchmarks/zip-benchmark.js]...
->> Small dataset (10x10) - Packing x 643 ops/sec ±0.69% (95 runs sampled)
->> Small dataset - Packing (no compression) x 3,057 ops/sec ±1.00% (98 runs sampled)
->> Small dataset - Adding rows x 9,042 ops/sec ±36.26% (32 runs sampled)
->> Small dataset - Generate entire file x 607 ops/sec ±0.79% (95 runs sampled)
->> Large dataset (200x200) - Packing x 2.12 ops/sec ±6.35% (9 runs sampled)
->> Large dataset - Packing (no compression) x 4.29 ops/sec ±10.83% (14 runs sampled)
->> Large dataset - Adding rows x 22.00 ops/sec ±26.83% (41 runs sampled)
->> Large dataset - Generate entire file x 1.89 ops/sec ±9.29% (9 runs sampled)
+>> Small dataset - Packing x 742 ops/sec ±1.39% (82 runs sampled)
+>> Small dataset - Adding rows only x 12,849 ops/sec ±6.92% (88 runs sampled)
+>> Small dataset - Generate entire file x 232 ops/sec ±1.60% (80 runs sampled)
+>> Small dataset - Generate entire file (parallelism: 10) x 32.00 ops/sec ±9.02% (56 runs sampled)
+>> Large dataset - Packing x 83.16 ops/sec ±20.18% (37 runs sampled)
+>> Large dataset - Packing (no compression) x 399 ops/sec ±2.73% (36 runs sampled)
+>> Large dataset - Adding rows only x 27.90 ops/sec ±4.10% (47 runs sampled)
+>> Large dataset - Generate entire file x 7.54 ops/sec ±3.47% (40 runs sampled)
+>> Large dataset - Generate entire file (parallelism: 10) x 0.91 ops/sec ±1.22% (9 runs sampled)
 ```
 
 ## Notes
