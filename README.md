@@ -2,46 +2,48 @@
 
 Simple streaming XLSX writer. Reverse-engineered from sample XLSX files.
 
-[![Build Status](https://travis-ci.org/ssafejava/node-xlsx-writestream.png?branch=master)](https://travis-ci.org/strml/node-xlsx-writestream)
+[![Build Status](https://travis-ci.org/STRML/node-xlsx-writestream.png?branch=master)](https://travis-ci.org/STRML/node-xlsx-writestream)
 
 Node-XLSX-WriteStream is written in [Literate CoffeeScript](http://coffeescript.org/#literate), so the source
-can be viewed as Markdown. 
+can be viewed as Markdown.
 
 [View the source & API.](src/index.litcoffee)
 
+This repository is a streaming fork of [node-xls-writer](https://github.com/rubenv/node-xlsx-writer).
+
 ## Usage
-  
+
 You can install the latest version via npm:
 
-  $ npm install --save xlsx-writestream
+    $ npm install --save xlsx-writestream
 
 Require the module:
 
-  var xlsx = require('xlsx-writestream');
+    var xlsx = require('xlsx-writestream');
 
 Write a spreadsheet:
 
-  var data = [
-      {
-          "Name": "Bob",
-          "Location": "Sweden"
-      },
-      {
-          "Name": "Alice",
-          "Location": "France"
-      }
-  ];
+    var data = [
+        {
+            "Name": "Bob",
+            "Location": "Sweden"
+        },
+        {
+            "Name": "Alice",
+            "Location": "France"
+        }
+    ];
 
-  xlsx.write('mySpreadsheet.xlsx', data, function (err) {
-      // Error handling here
-  });
+    xlsx.write('mySpreadsheet.xlsx', data, function (err) {
+        // Error handling here
+    });
 
 This will write a spreadsheet like this:
 
-  Name    | Location
-  --------+---------
-  Bob     | Sweden
-  Alice   | France
+    Name    | Location
+    --------+---------
+    Bob     | Sweden
+    Alice   | France
 
 In other words: The key names are used for the first row (headers),
 The values are used for the columns. All field names should be present
@@ -73,7 +75,7 @@ spreadsheet incrementally:
     // Add a row with a hyperlink
     writer.addRow({
         "Name": {value: "Bill", hyperlink: "http://www.thegatesnotes.com"},
-        "Location": "Seattle, Washington"  
+        "Location": "Seattle, Washington"
     })
 
     // Optional: Adjust column widths
@@ -111,7 +113,7 @@ For example, you may want to stream data from a remote API into an XLSX file:
 
 
 ## Data Types
-  
+
 Numbers, Strings, and Dates are automatically converted when inputted. Simply
 use their native types. Additionally, any data item can be turned into a hyperlink
 by enclosing it within an object with the keys `value, hyperlink`.
@@ -130,7 +132,7 @@ by enclosing it within an object with the keys `value, hyperlink`.
 The XLSX format is actually a zip file, and Node-XLSX-WriteStream uses [node-zip](https://github.com/daraosn/node-zip) internally.
 Node-zip generates zip files synchronously but is very fast.
 
-Pending a possible asynchronous rework, if speed is a big concern to you, run `pack()` in 
+Pending a possible asynchronous rework, if speed is a big concern to you, run `pack()` in
 a thread using something like [node-webworker-threads](https://github.com/audreyt/node-webworker-threads).
 
 This repo contains a simple benchmark suite that can give you an idea of how this module
@@ -165,7 +167,7 @@ folder. Do not edit the generated files in `lib`, they will get overwritten
 You can build and test your code using [Grunt](http://gruntjs.com/). The
 default task will clean the source, compiled it and run the tests.
 
-## License 
+## License
 
 Copyright (c) 2013 Ruben Vermeersch
 
