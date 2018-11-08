@@ -1,6 +1,7 @@
 .npmignore
 .travis.yml
 Gruntfile.coffee
-benchmarks
-test
+benchmarks/**/*
+test/**/*
 tmp
+*.tgz
